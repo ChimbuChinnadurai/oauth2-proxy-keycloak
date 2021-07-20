@@ -1,0 +1,169 @@
+---
+# Source: oauth2-proxy/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    app: oauth2-proxy
+    chart: oauth2-proxy-3.2.5
+    heritage: Tiller
+    release: oauth2-proxy
+  name: oauth2-proxy
+type: Opaque
+data:
+  cookie-secret: "WFhYWFhYWFhYWFhYWFhYWA=="
+  #client-secret: "WFhYWFhYWFg="
+  #client-id: "WFhYWFhYWA=="
+---
+# Source: oauth2-proxy/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: oauth2-proxy
+    chart: oauth2-proxy-3.2.5
+    heritage: Tiller
+    release: oauth2-proxy
+  name: oauth2-proxy
+data:
+  oauth2_proxy.cfg: "email_domains = [ \"*\" ]\nupstreams = [ \"file:///dev/null\" ]"
+---
+# Source: oauth2-proxy/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: oauth2-proxy
+    chart: oauth2-proxy-3.2.5
+    release: oauth2-proxy
+    heritage: Tiller
+  name: oauth2-proxy
+---
+# Source: oauth2-proxy/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: oauth2-proxy
+    chart: oauth2-proxy-3.2.5
+    release: oauth2-proxy
+    heritage: Tiller
+  name: oauth2-proxy
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: oauth2-proxy
+    release: oauth2-proxy
+---
+# Source: oauth2-proxy/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: oauth2-proxy
+    chart: oauth2-proxy-3.2.5
+    heritage: Tiller
+    release: oauth2-proxy
+  name: oauth2-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy
+      release: oauth2-proxy
+  template:
+    metadata:
+      annotations:
+        checksum/config: ff7534bec661d9026d39fbff99b4070a59adcf460a547d2c72266cf5ff7e7f66
+        checksum/config-emails: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        checksum/google-secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      labels:
+        app: oauth2-proxy
+        release: oauth2-proxy
+    spec:
+      serviceAccountName: oauth2-proxy
+      containers:
+      - name: oauth2-proxy
+        image: "quay.io/pusher/oauth2_proxy:v5.1.0"
+        imagePullPolicy: IfNotPresent
+        args:
+          - --provider=keycloak
+          - --provider-display-name=Keycloak
+          - --login-url=https://sso.platform.wtrecom.com/auth/realms/platform-tools/protocol/openid-connect/auth
+          - --redeem-url=https://sso.platform.wtrecom.com/auth/realms/platform-tools/protocol/openid-connect/token
+          - --validate-url=https://sso.platform.wtrecom.com/auth/realms/platform-tools/protocol/openid-connect/userinfo
+          - --client-id=oauth2-proxy
+          - --client-secret=b699bcd6-7e53-4d8a-ad93-b1d43fd40f7d
+          - --cookie-secret=RHE5eVhyc1RDMnlVSUZEcVlTbUtnSzJidmJzVmdPWEE=
+          - --cookie-secure=false
+          - --http-address=http://:4180
+          #- --upstream=file:///dev/null
+          - --keycloak-group=/WTR-ECOM-ADMIN-USERS
+          #- --skip-provider-button=false
+          #- --set-xauthrequest=true
+          #- --skip-auth-preflight=false
+          - --reverse-proxy=true
+          - --email-domain=*
+          - --cookie-domain="*.sandbox.wtrecom.com"
+          - --whitelist-domain="*.sandbox.wtrecom.com"
+        env:
+        #- name: OAUTH2_PROXY_CLIENT_ID
+        #  valueFrom:
+        #    secretKeyRef:
+        #      name:  oauth2-proxy
+        #      key: client-id
+        #- name: OAUTH2_PROXY_CLIENT_SECRET
+        #  valueFrom:
+        #    secretKeyRef:
+        #      name: oauth2-proxy
+        #      key: client-secret
+        #- name: OAUTH2_PROXY_COOKIE_SECRET
+        #  valueFrom:
+        #    secretKeyRef:
+        #      name:  oauth2-proxy
+        #      key: cookie-secret
+        ports:
+          - containerPort: 4180
+            name: http
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 0
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 0
+          timeoutSeconds: 1
+          successThreshold: 1
+          periodSeconds: 10
+        resources:
+          {}
+        volumeMounts:
+        - mountPath: /etc/oauth2_proxy
+          name: configmain
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: oauth2-proxy
+        name: configmain
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: oauth2-proxy
+            topologyKey: kubernetes.io/hostname
+      tolerations:
+        []

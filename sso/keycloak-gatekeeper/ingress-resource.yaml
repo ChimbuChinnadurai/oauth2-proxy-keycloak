@@ -1,0 +1,114 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: sso-test-app
+  name: sso-test-app
+  namespace: default
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: service
+  selector:
+    app: sso-test-app
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sso-test-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sso-test-app
+  template:
+    metadata:
+      labels:
+        app: sso-test-app
+    spec:
+      containers:
+      - name: ambassador-test-app-2
+        image: simbu1290/gcp-test:api-test
+        ports:
+          - containerPort: 5000
+      - name: gatekeeper
+        image: carlosedp/keycloak-gatekeeper:latest
+        args:
+        - --config=/etc/keycloak-gatekeeper.conf
+        ports:
+        - containerPort: 3000
+          name: service
+        volumeMounts:
+        - name: gatekeeper-config
+          mountPath: /etc/keycloak-gatekeeper.conf
+          subPath: keycloak-gatekeeper.conf
+        - name: gatekeeper-files
+          mountPath: /html
+      volumes:
+      - name : gatekeeper-config
+        configMap:
+          name: gatekeeper-config
+      - name : gatekeeper-files
+        configMap:
+          name: gatekeeper-files
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gatekeeper-config
+  namespace: default
+  creationTimestamp: null
+data:
+  keycloak-gatekeeper.conf: |+
+    # is the url for retrieve the OpenID configuration - normally the <server>/auth/realms/<realm_name>
+    discovery-url: https://sso.platform.wtrecom.com/auth/realms/platform-tools
+    # skip tls verify
+    skip-openid-provider-tls-verify: true
+    # the client id for the 'client' application
+    client-id: oauth2-proxy
+    # the secret associated to the 'client' application
+    client-secret: b699bcd6-7e53-4d8a-ad93-b1d43fd40f7d
+    # the interface definition you wish the proxy to listen, all interfaces is specified as ':<port>', unix sockets as unix://<REL_PATH>|</ABS PATH>
+    listen: :3000
+    # whether to enable refresh tokens
+    enable-refresh-tokens: true
+    # the location of a certificate you wish the proxy to use for TLS support
+    tls-cert:
+    # the location of a private key for TLS
+    tls-private-key:
+    # the redirection url, essentially the site url, note: /oauth/callback is added at the end
+    redirection-url: http://prometheus-gcp-test.sandbox.wtrecom.com
+    secure-cookie: false
+    # the encryption key used to encode the session state
+    encryption-key: vGcLt8ZUdPX5fXhtLZaPHZkGWHZrT6aa
+    # the upstream endpoint which we should proxy request
+    upstream-url: http://127.0.0.1:5000/
+    forbidden-page: /html/access-forbidden.html
+    resources:
+    - uri: /*
+      groups:
+      - WTR-ECOM-ADMIN-USERS
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-myservicea
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: prometheus-gcp-test.sandbox.wtrecom.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sso-test-app
+            port:
+              number: 80
