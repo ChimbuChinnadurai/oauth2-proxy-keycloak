@@ -95,23 +95,23 @@ spec:
         args:
           - --provider=keycloak
           - --provider-display-name=Keycloak
-          - --login-url=https://sso.platform.wtrecom.com/auth/realms/platform-tools/protocol/openid-connect/auth
-          - --redeem-url=https://sso.platform.wtrecom.com/auth/realms/platform-tools/protocol/openid-connect/token
-          - --validate-url=https://sso.platform.wtrecom.com/auth/realms/platform-tools/protocol/openid-connect/userinfo
+          - --login-url=https://sso.platform.com/auth/realms/platform-tools/protocol/openid-connect/auth
+          - --redeem-url=https://sso.platform.com/auth/realms/platform-tools/protocol/openid-connect/token
+          - --validate-url=https://sso.platform.com/auth/realms/platform-tools/protocol/openid-connect/userinfo
           - --client-id=oauth2-proxy
           - --client-secret=b699bcd6-7e53-4d8a-ad93-b1d43fd40f7d
           - --cookie-secret=RHE5eVhyc1RDMnlVSUZEcVlTbUtnSzJidmJzVmdPWEE=
           - --cookie-secure=false
           - --http-address=http://:4180
           #- --upstream=file:///dev/null
-          - --keycloak-group=/WTR-ECOM-ADMIN-USERS
+          - --keycloak-group=/ADMIN-USERS
           #- --skip-provider-button=false
           #- --set-xauthrequest=true
           #- --skip-auth-preflight=false
           - --reverse-proxy=true
           - --email-domain=*
-          - --cookie-domain="*.sandbox.wtrecom.com"
-          - --whitelist-domain="*.sandbox.wtrecom.com"
+          - --cookie-domain="*.sandbox.com"
+          - --whitelist-domain="*.sandbox.com"
         env:
         #- name: OAUTH2_PROXY_CLIENT_ID
         #  valueFrom:

@@ -48,9 +48,9 @@ data:
     # Provider config
     provider="keycloak"
     provider_display_name="Keycloak"
-    login_url="https://sso.platform.wtrecom.com/auth/realms/platform-tools/protocol/openid-connect/auth"
-    redeem_url="https://sso.platform.wtrecom.com/auth/realms/platform-tools/protocol/openid-connect/token"
-    validate_url="https://sso.platform.wtrecom.com/auth/realms/platform-tools/protocol/openid-connect/userinfo"
+    login_url="https://sso.platform.com/auth/realms/platform-tools/protocol/openid-connect/auth"
+    redeem_url="https://sso.platform.com/auth/realms/platform-tools/protocol/openid-connect/token"
+    validate_url="https://sso.platform.com/auth/realms/platform-tools/protocol/openid-connect/userinfo"
     ssl_insecure_skip_verify=true
     # Client config
     client_id="oauth2-proxy"
@@ -61,14 +61,14 @@ data:
     http_address="0.0.0.0:3000"
     upstreams="http://127.0.0.1:80/"
     # Proxy Config
-    keycloak_group="/WTR-ECOM-ADMIN-USERS"
+    keycloak_group="/ADMIN-USERS"
     #user_id_claim="preferred_username"
     skip_auth_routes=["/health.*"]
     skip_provider_button="true"
     reverse_proxy="true"
     email_domains=["*"]
-    cookie_domains=[".sandbox.wtrecom.com"]
-    whitelist_domains=[".sandbox.wtrecom.com"]
+    cookie_domains=[".sandbox.com"]
+    whitelist_domains=[".sandbox.com"]
     custom_templates_dir="/templates"
 ---
 apiVersion: v1
@@ -108,7 +108,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-    - host: prometheus-gcp-test.sandbox.wtrecom.com
+    - host: prometheus-gcp-test.sandbox.com
       http:
         paths:
           - path: /
