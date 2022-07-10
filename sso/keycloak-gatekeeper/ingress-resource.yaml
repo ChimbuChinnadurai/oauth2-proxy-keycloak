@@ -66,13 +66,13 @@ metadata:
 data:
   keycloak-gatekeeper.conf: |+
     # is the url for retrieve the OpenID configuration - normally the <server>/auth/realms/<realm_name>
-    discovery-url: https://sso.platform.wtrecom.com/auth/realms/platform-tools
+    discovery-url: https://sso.test/auth/realms/platform-tools
     # skip tls verify
     skip-openid-provider-tls-verify: true
     # the client id for the 'client' application
     client-id: oauth2-proxy
     # the secret associated to the 'client' application
-    client-secret: b699bcd6-7e53-4d8a-ad93-b1d43fd40f7d
+    client-secret: xxxxxxxxxxx
     # the interface definition you wish the proxy to listen, all interfaces is specified as ':<port>', unix sockets as unix://<REL_PATH>|</ABS PATH>
     listen: :3000
     # whether to enable refresh tokens
@@ -82,17 +82,17 @@ data:
     # the location of a private key for TLS
     tls-private-key:
     # the redirection url, essentially the site url, note: /oauth/callback is added at the end
-    redirection-url: http://prometheus-gcp-test.sandbox.wtrecom.com
+    redirection-url: http://prometheus-gcp-test.sandbox.com
     secure-cookie: false
     # the encryption key used to encode the session state
-    encryption-key: vGcLt8ZUdPX5fXhtLZaPHZkGWHZrT6aa
+    encryption-key: xxxxxxxxxx
     # the upstream endpoint which we should proxy request
     upstream-url: http://127.0.0.1:5000/
     forbidden-page: /html/access-forbidden.html
     resources:
     - uri: /*
       groups:
-      - WTR-ECOM-ADMIN-USERS
+      - ADMIN-USERS
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -102,7 +102,7 @@ metadata:
     kubernetes.io/ingress.class: "nginx"
 spec:
   rules:
-  - host: prometheus-gcp-test.sandbox.wtrecom.com
+  - host: prometheus-gcp-test.sandbox.com
     http:
       paths:
       - path: /
